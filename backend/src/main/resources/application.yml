@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: dropline
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/dropline}
+    username: ${DB_USER:dropline}
+    password: ${DB_PASSWORD:dropline}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+  flyway:
+    enabled: true
+
+server:
+  port: ${PORT:8080}
+  tomcat:
+    # Run 1 in docs/results/NOTES.md: the default backlog of 100 was the
+    # first thing to break, before threads or the database.
+    accept-count: ${TOMCAT_ACCEPT_COUNT:2048}
+    max-connections: ${TOMCAT_MAX_CONNECTIONS:8192}
+    threads:
+      max: ${TOMCAT_MAX_THREADS:200}
+
+logging:
+  # The agent puts trace_id and span_id in the MDC. Printing them means a
+  # log line found in Loki leads straight to its trace in Tempo.
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %5p [%X{trace_id:-},%X{span_id:-}] %-40.40logger{39} : %m%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+dropline:
+  drop-id: 1
+  purchase:
+    # conditional | optimistic | pessimistic. Only conditional exists yet.
+    strategy: ${PURCHASE_STRATEGY:conditional}

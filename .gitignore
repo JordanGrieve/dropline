@@ -1,0 +1,35 @@
+# Node (frontend)
+node_modules/
+frontend/dist/
+*.local
+
+# Gradle (backend)
+backend/.gradle/
+backend/build/
+backend/.kotlin/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+bin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local tooling
+.claude/settings.local.json
+
+# Terraform state, if it ever exists
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/*.tfvars
+
+# Secrets
+.env
+.env.*

@@ -1,0 +1,161 @@
+{
+    "metrics": {
+        "ws_sessions": {
+            "count": 2000,
+            "rate": 10.810698116587472
+        },
+        "http_req_receiving": {
+            "p(99)": 0,
+            "max": 0,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_req_duration": {
+            "min": 31.3459,
+            "med": 32.9531,
+            "p(90)": 34.17948,
+            "p(95)": 34.36384,
+            "p(99)": 34.511328,
+            "max": 34.5482
+        },
+        "http_req_waiting": {
+            "min": 31.3459,
+            "med": 32.9531,
+            "p(90)": 33.590399999999995,
+            "p(95)": 33.608399999999996,
+            "p(99)": 33.6228,
+            "max": 33.6264
+        },
+        "ws_connecting": {
+            "max": 8.9966,
+            "min": 0,
+            "med": 1.005,
+            "p(90)": 1.19598,
+            "p(95)": 1.3837799999999998,
+            "p(99)": 1.5112020000000002
+        },
+        "vus": {
+            "value": 12,
+            "min": 12,
+            "max": 2001
+        },
+        "http_req_sending": {
+            "p(95)": 0.8094399999999998,
+            "p(99)": 0.971328,
+            "max": 1.0118,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0.6070800000000001
+        },
+        "http_req_blocked": {
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0
+        },
+        "http_req_failed": {
+            "fails": 5,
+            "passes": 0,
+            "value": 0
+        },
+        "dropline_ws_errors": {
+            "count": 0,
+            "rate": 0,
+            "thresholds": {
+                "count==0": false
+            }
+        },
+        "http_req_connecting": {
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "max": 0
+        },
+        "dropline_ws_open": {
+            "min": 1,
+            "max": 1,
+            "value": 1
+        },
+        "dropline_buys": {
+            "count": 5,
+            "rate": 0.02702674529146868
+        },
+        "dropline_ws_messages": {
+            "count": 10000,
+            "rate": 54.05349058293736,
+            "thresholds": {
+                "count==10000": false
+            }
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(99)": 34.511328,
+            "max": 34.5482,
+            "min": 31.3459,
+            "med": 32.9531,
+            "p(90)": 34.17948,
+            "p(95)": 34.36384
+        },
+        "dropline_ws_connected": {
+            "count": 2000,
+            "rate": 10.810698116587472
+        },
+        "http_reqs": {
+            "count": 5,
+            "rate": 0.02702674529146868
+        },
+        "vus_max": {
+            "value": 2001,
+            "min": 2001,
+            "max": 2001
+        },
+        "http_req_tls_handshaking": {
+            "p(99)": 0,
+            "max": 0,
+            "min": 0,
+            "med": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "data_received": {
+            "count": 700750,
+            "rate": 3787.7983525993354
+        },
+        "iteration_duration": {
+            "min": 8031.5995,
+            "med": 8033.1876,
+            "p(90)": 8034.73348,
+            "p(95)": 8034.88174,
+            "p(99)": 8035.000348,
+            "max": 8035.03
+        },
+        "iterations": {
+            "count": 5,
+            "rate": 0.02702674529146868
+        },
+        "ws_msgs_received": {
+            "count": 12000,
+            "rate": 64.86418869952483
+        },
+        "dropline_ws_snapshots": {
+            "count": 2000,
+            "rate": 10.810698116587472
+        },
+        "data_sent": {
+            "count": 386795,
+            "rate": 2090.7619890027254
+        }
+    },
+    "root_group": {
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {},
+        "checks": {},
+        "name": ""
+    }
+}

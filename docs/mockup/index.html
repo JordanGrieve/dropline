@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Dropline mockup</title>
+<style>
+  /*
+    Rough mockup of the drop page. Static, no backend. The state switcher
+    at the top exists only in this mockup so all three states can be seen.
+    Everything else follows ACCESSIBILITY.md: rem type, 44px targets,
+    system colour scheme, one reduced-motion rule at the end.
+  */
+  :root {
+    --bg: #faf9f6;
+    --ink: #1a1a1a;
+    --muted: #4a4a4a;
+    --line: #d9d6cf;
+    --card: #ffffff;
+    --accent: #0a3d62;
+    --accent-ink: #ffffff;
+    --low: #8a1c1c;
+    --ok: #1f5c2e;
+    --focus: #d97706;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141414;
+      --ink: #f2f0eb;
+      --muted: #c4c0b8;
+      --line: #3a3a3a;
+      --card: #1e1e1e;
+      --accent: #8fc1e3;
+      --accent-ink: #0b1a24;
+      --low: #f29b9b;
+      --ok: #9bd3a8;
+      --focus: #fbbf24;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 1rem/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  :focus-visible {
+    outline: 0.1875rem solid var(--focus);
+    outline-offset: 0.1875rem;
+  }
+
+  .page {
+    max-width: 36rem;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-size: 1.25rem; margin: 0; letter-spacing: 0.02em; }
+  header p { margin: 0; color: var(--muted); font-size: 0.875rem; }
+
+  .product {
+    margin-top: 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+  .product-image {
+    aspect-ratio: 4 / 3;
+    background: repeating-linear-gradient(
+      45deg, var(--line) 0 0.5rem, transparent 0.5rem 1rem
+    );
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+  .product-body { padding: 1.25rem; }
+  .product-body h2 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+  .price { margin: 0; font-size: 1.125rem; color: var(--muted); }
+
+  .status-block {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 26rem) {
+    .status-block { grid-template-columns: 1fr; }
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+  .stat dt {
+    font-size: 0.875rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .stat dd {
+    margin: 0.25rem 0 0;
+    font-size: clamp(2rem, 8vw, 3rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+  .stat dd small {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+  .stat.low dd { color: var(--low); }
+  .stat.open dd { color: var(--ok); }
+
+  .buy {
+    margin-top: 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+  }
+  .buy label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .buy input {
+    width: 100%;
+    min-height: 2.75rem;
+    font: inherit;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--muted);
+    border-radius: 0.5rem;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .buy button {
+    margin-top: 1rem;
+    width: 100%;
+    min-height: 3rem;
+    font: inherit;
+    font-size: 1.125rem;
+    font-weight: 700;
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    cursor: pointer;
+  }
+  .buy button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .message {
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--line);
+    background: var(--card);
+    font-weight: 600;
+  }
+  .message:empty { display: none; }
+
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* mockup only */
+  .mock-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border: 1px dashed var(--line);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+  .mock-switch span { align-self: center; color: var(--muted); }
+  .mock-switch button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    font: inherit;
+    padding: 0 0.75rem;
+    border: 1px solid var(--muted);
+    border-radius: 0.5rem;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .mock-switch button[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  [hidden] { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="mock-switch" aria-label="Mockup state switcher, not part of the real page">
+    <span>Mockup state:</span>
+    <button type="button" data-state="before" aria-pressed="true">Before drop</button>
+    <button type="button" data-state="open" aria-pressed="false">Drop open</button>
+    <button type="button" data-state="low" aria-pressed="false">Low stock</button>
+    <button type="button" data-state="soldout" aria-pressed="false">Sold out</button>
+  </div>
+
+  <header>
+    <h1>Dropline</h1>
+    <p>One product. One drop. One hundred units.</p>
+  </header>
+
+  <main>
+    <section class="product" aria-labelledby="product-name">
+      <div class="product-image" role="img" aria-label="Product image placeholder">
+        product image
+      </div>
+      <div class="product-body">
+        <h2 id="product-name">Dropline Tee, Edition 001</h2>
+        <p class="price">£40</p>
+      </div>
+    </section>
+
+    <dl class="status-block">
+      <div class="stat" id="countdown-stat">
+        <dt>Opens in</dt>
+        <dd id="countdown">04:59<small>Tonight at 20:00</small></dd>
+      </div>
+      <div class="stat" id="stock-stat">
+        <dt>Remaining</dt>
+        <dd><span id="remaining">100</span><small id="remaining-label">of 100 units</small></dd>
+      </div>
+    </dl>
+
+    <form class="buy" id="buy-form">
+      <label for="buyer">Your name</label>
+      <input id="buyer" name="buyer" type="text" autocomplete="name" required>
+      <button type="submit" id="buy-button" disabled>Buy one</button>
+      <p class="hint" id="buy-hint">The button becomes active when the drop opens.</p>
+    </form>
+
+    <div class="message" id="message" tabindex="-1"></div>
+
+    <!-- Throttled announcer. Milestones and state changes only, never the raw counter. -->
+    <div class="sr-only" id="announcer" aria-live="polite" aria-atomic="true"></div>
+  </main>
+</div>
+
+<script>
+  // Mockup only. Swaps static content between the four states so the layout
+  // can be reviewed. The real app.js drives these from the WebSocket.
+  const states = {
+    before: {
+      countdown: '04:59', countdownNote: 'Tonight at 20:00',
+      remaining: '100', remainingLabel: 'of 100 units',
+      stockClass: '', buttonDisabled: true, buttonHidden: false,
+      hint: 'The button becomes active when the drop opens.',
+      message: '', announce: ''
+    },
+    open: {
+      countdown: 'Open', countdownNote: 'Drop is live',
+      remaining: '73', remainingLabel: 'of 100 units',
+      stockClass: 'open', buttonDisabled: false, buttonHidden: false,
+      hint: 'One per person. Press Buy to reserve a unit.',
+      message: '', announce: 'Drop open. 73 remaining.'
+    },
+    low: {
+      countdown: 'Open', countdownNote: 'Drop is live',
+      remaining: '7', remainingLabel: 'of 100 units, low stock',
+      stockClass: 'low', buttonDisabled: false, buttonHidden: false,
+      hint: 'One per person. Press Buy to reserve a unit.',
+      message: '', announce: 'Ten left.'
+    },
+    soldout: {
+      countdown: 'Closed', countdownNote: 'Drop has ended',
+      remaining: '0', remainingLabel: 'sold out',
+      stockClass: 'low', buttonDisabled: true, buttonHidden: true,
+      hint: '',
+      message: 'Sold out. All 100 units have gone.', announce: 'Sold out.'
+    }
+  };
+
+  const el = id => document.getElementById(id);
+  const buttons = document.querySelectorAll('.mock-switch button');
+
+  function apply(name) {
+    const s = states[name];
+    el('countdown').firstChild.textContent = s.countdown;
+    el('countdown').querySelector('small').textContent = s.countdownNote;
+    el('remaining').textContent = s.remaining;
+    el('remaining-label').textContent = s.remainingLabel;
+    el('stock-stat').className = 'stat ' + s.stockClass;
+    el('buy-button').disabled = s.buttonDisabled;
+    el('buy-button').hidden = s.buttonHidden;
+    el('buy-hint').textContent = s.hint;
+    el('buy-hint').hidden = !s.hint;
+    el('message').textContent = s.message;
+    el('announcer').textContent = s.announce;
+    if (s.buttonHidden) el('message').focus();
+    buttons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.state === name)));
+  }
+
+  buttons.forEach(b => b.addEventListener('click', () => apply(b.dataset.state)));
+  el('buy-form').addEventListener('submit', e => {
+    e.preventDefault();
+    el('message').textContent = 'Yours. Unit reserved for ' + (el('buyer').value || 'you') + '.';
+    el('announcer').textContent = 'Purchase confirmed.';
+    el('message').focus();
+  });
+</script>
+</body>
+</html>
