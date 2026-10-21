@@ -21,7 +21,7 @@ graph TD
     BM --> BD["drop/<br/>DropController<br/>DropRepository"]
     BM --> BP["purchase/<br/>PurchaseController<br/>PurchaseService"]
     BP --> BS["strategy/<br/>PurchaseStrategy (interface)<br/>ConditionalUpdateStrategy<br/>OptimisticLockStrategy<br/>PessimisticLockStrategy"]
-    BM --> BR["realtime/<br/>StockWebSocketHandler<br/>StockBroadcaster<br/>RedisFanout (week 4)"]
+    BM --> BR["realtime/<br/>StockWebSocketHandler, StockBroadcaster<br/>StockPublisher: Local | Redis"]
     B --> BRES["src/main/resources/<br/>application.yml<br/>db/migration/V1__init.sql"]
     B --> BT["src/test/java/.../<br/>PurchaseConcurrencyTest<br/>StrategyComparisonTest"]
 
@@ -29,7 +29,9 @@ graph TD
     L --> L2["strategies.js<br/>same load, three strategies"]
     L --> L3["fanout.js<br/>WebSocket connections until it breaks"]
 
-    I --> I1["docker-compose.yml<br/>postgres, redis, otel-lgtm, app x2, nginx"]
+    I --> I1["docker-compose.yml<br/>dev: postgres, otel-lgtm"]
+    I --> I3["docker-compose.cluster.yml<br/>app x2, edge, postgres, redis, otel-lgtm, k6"]
+    I --> I4["edge.Dockerfile, nginx.conf<br/>static front end + load balancer"]
     I --> I2["terraform/<br/>if time allows"]
 
     D --> D1["DATABASE.md<br/>STRUCTURE.md<br/>ARCHITECTURE.md"]

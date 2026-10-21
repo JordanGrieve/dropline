@@ -38,6 +38,30 @@ TCP listen backlog at about 200 whatever the app asks for, so a truly
 simultaneous stampede is refused by the OS before Tomcat sees it. See
 `docs/results/NOTES.md`, run 2. On Linux leave jitter at 0.
 
+## The cluster, and k6 on Linux
+
+`infra/docker-compose.cluster.yml` runs two app instances behind nginx with
+Redis fan-out, and carries a k6 service on the same network. That path is
+Linux to Linux, so the Windows cap above does not apply and jitter stays 0.
+
+```bash
+docker compose -f infra/docker-compose.cluster.yml up -d --build
+docker exec -i dropline-cluster-postgres-1 psql -U dropline -d dropline < load/reset.sql
+docker compose -f infra/docker-compose.cluster.yml --profile load run --rm k6 \
+  run -e VUS=10000 --summary-trend-stats="$STATS" \
+  --summary-export=/results/$(date +%F)-linux-headline-10000.json headline.js
+docker compose -f infra/docker-compose.cluster.yml --profile load run --rm k6 \
+  run -e MAX=5000 --summary-trend-stats="$STATS" \
+  --summary-export=/results/$(date +%F)-linux-fanout-5000.json fanout.js
+```
+
+`/results` inside the container is `docs/results/` on the host.
+
+**From Git Bash on Windows, set `MSYS_NO_PATHCONV=1` first.** Otherwise the
+shell rewrites `/results/...` into a path under `C:\Program Files\Git` and
+k6 reports it could not save the summary. The run still happens; the
+evidence does not get written. Check `docs/results/` after every run.
+
 ## Reading the numbers
 
 - `dropline_purchase_latency` p50, p95, p99 are the experience. The average

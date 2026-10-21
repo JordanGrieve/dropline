@@ -22,8 +22,9 @@ const VUS = Number(__ENV.VUS || 10000);
 // On Linux leave it at 0.
 const JITTER = Number(__ENV.JITTER || 0);
 
-// 409 is the correct answer for most buyers, not a failure.
-http.setResponseCallback(http.expectedStatuses(201, 409));
+// 409 is the correct answer for most buyers, not a failure. 200 is for the
+// setup and teardown GETs.
+http.setResponseCallback(http.expectedStatuses(200, 201, 409));
 
 const sold = new Counter('dropline_sold');
 const soldOut = new Counter('dropline_sold_out');

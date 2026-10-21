@@ -9,6 +9,10 @@ spring:
       maximum-pool-size: ${DB_POOL_SIZE:10}
   flyway:
     enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 server:
   port: ${PORT:8080}
@@ -31,9 +35,17 @@ management:
     web:
       exposure:
         include: health,info,metrics
+  health:
+    redis:
+      # Only part of health when Redis is the fan-out; a single local
+      # instance must not report DOWN for want of a Redis it does not use.
+      enabled: ${REDIS_HEALTH:false}
 
 dropline:
   drop-id: 1
+  # local: one instance, broadcast in memory.
+  # redis: every instance publishes to Redis and delivers what it receives.
+  fanout: ${FANOUT:local}
   purchase:
     # conditional | optimistic | pessimistic. Only conditional exists yet.
     strategy: ${PURCHASE_STRATEGY:conditional}

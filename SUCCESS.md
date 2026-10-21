@@ -64,7 +64,9 @@ graph of the failure next to a graph of the fix.
 
 The project is finished when all of these are true:
 
-- [ ] The headline run passes repeatedly, and the evidence is saved.
+- [x] The headline run passes repeatedly, and the evidence is saved.
+      (Runs 9 to 11 in `docs/results/NOTES.md`: 10,000 simultaneous buyers,
+      two instances on Linux, exactly 100 sold each time. 21 October 2026.)
 - [ ] All three concurrency strategies are implemented and measured.
 - [ ] The deliberate oversell has been produced and captured.
 - [ ] An instance has been killed mid-drop and the behaviour documented.

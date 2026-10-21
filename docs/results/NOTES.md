@@ -138,3 +138,70 @@ and on Linux, since the Windows backlog cap (run 2) will interfere with the
 connection ramp before the server does.
 
 Summary: `2026-10-21-fanout-2000-run6.json`.
+
+## 2026-10-21, run 7: the headline on Linux, two instances, no jitter
+
+**Conditions.** `infra/docker-compose.cluster.yml`: two app instances
+behind nginx, Redis fan-out, Postgres 16, otel-lgtm, all in Docker Desktop
+(WSL2) on the same laptop. k6 2.3.0 in a container on the same network, so
+the path is Linux to Linux and the Windows backlog cap (run 2) is gone.
+10,000 VUs, one purchase each, **jitter 0**: every connect in the same
+instant. nginx listen backlog 4,096, Tomcat accept-count 2,048 per
+instance, 200 threads per instance, Hikari 10 per instance.
+
+**Correctness.** 100 sold, 9,900 told sold out, 0 unexpected, 0 remaining,
+100 purchase rows. **Pass.** All 10,000 answered in 2.7 s.
+
+| | ms |
+| --- | --- |
+| p50 | 1,120 |
+| p90 | 1,700 |
+| p95 | 1,760 |
+| p99 | 1,830 |
+| max | 1,960 |
+
+**Reading it.** Nothing was refused and nothing errored: the queueing
+moved from the OS, where it was fatal, to nginx and Tomcat, where it is
+just latency. A median of 1.1 s is 10,000 requests draining through 400
+Tomcat threads and 20 database connections; the tail is a tight 0.7 s
+above the median, which says the queue is orderly. The first limit to lift
+for the tail is the Hikari pool, and that is experiment 5's territory.
+
+**Evidence.** The summary export for this run was lost: Git Bash rewrote
+the container path and k6 could not save it, and the error was hidden by
+an output filter. The numbers above are from the terminal. Runs 9 to 11
+repeat it with the files saved; treat those as the evidence and this as the
+cold-start data point.
+
+## 2026-10-21, run 8: fan-out on Linux, 5,000 live viewers, two instances
+
+Same cluster. Ramp 0 → 1,250 → 2,500 → 5,000 over 90 s, hold 60 s, five
+scripted purchases during the hold, through nginx, so they land on both
+instances and reach every viewer through Redis.
+
+**Result.** 5,000 connected, 5,000 snapshots, **25,000 of 25,000 broadcast
+messages**, 0 errors. Connect time p99 1.6 ms, max 34 ms.
+
+Every viewer on either instance saw every purchase made on either instance,
+in order. 5,000 is not the breaking point either; the next step is 10,000
+and 20,000, which will want k6 on a separate machine before the numbers
+mean anything.
+
+Summary: `2026-10-21-linux-fanout-5000.json`.
+
+## 2026-10-21, runs 9 to 11: the headline on Linux, three times in a row
+
+Same conditions as run 7, immediately after run 8, JVMs warm.
+
+| Run | Sold | Unexpected | p50 | p95 | p99 | max |
+| --- | --- | --- | --- | --- | --- | --- |
+| 9 | 100 | 0 | 150 ms | 416 ms | 468 ms | 504 ms |
+| 10 | 100 | 0 | 354 ms | 470 ms | 488 ms | 588 ms |
+| 11 | 100 | 0 | 187 ms | 353 ms | 378 ms | 411 ms |
+
+**Exactly 100, three times, under a truly simultaneous 10,000.** Warm, the
+p99 is under half a second; run 7's 1.8 s was the JIT and the connection
+pools warming up on the first stampede. A real drop would be warmed before
+the open time.
+
+Summaries: `2026-10-21-linux-headline-10000-repeat{1,2,3}.json`.

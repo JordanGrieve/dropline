@@ -3,7 +3,7 @@ package com.jordangrieve.dropline.purchase;
 import com.jordangrieve.dropline.drop.DropInfo;
 import com.jordangrieve.dropline.drop.DropRepository;
 import com.jordangrieve.dropline.purchase.strategy.PurchaseStrategy;
-import com.jordangrieve.dropline.realtime.StockBroadcaster;
+import com.jordangrieve.dropline.realtime.StockPublisher;
 import java.time.Clock;
 import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,18 +18,18 @@ public class PurchaseService {
     private final DropRepository drops;
     private final JdbcClient jdbc;
     private final TransactionTemplate tx;
-    private final StockBroadcaster broadcaster;
+    private final StockPublisher publisher;
     private final Clock clock;
     private final long dropId;
 
     public PurchaseService(PurchaseStrategy strategy, DropRepository drops, JdbcClient jdbc,
-                           TransactionTemplate tx, StockBroadcaster broadcaster, Clock clock,
+                           TransactionTemplate tx, StockPublisher publisher, Clock clock,
                            @Value("${dropline.drop-id}") long dropId) {
         this.strategy = strategy;
         this.drops = drops;
         this.jdbc = jdbc;
         this.tx = tx;
-        this.broadcaster = broadcaster;
+        this.publisher = publisher;
         this.clock = clock;
         this.dropId = dropId;
     }
@@ -62,7 +62,7 @@ public class PurchaseService {
             return new PurchaseResult(total - remaining.getAsInt(), remaining.getAsInt());
         });
 
-        broadcaster.publish(result.remaining(), DropInfo.stateOf(opensAt, result.remaining(), clock.instant()));
+        publisher.publish(result.remaining(), DropInfo.stateOf(opensAt, result.remaining(), clock.instant()));
         return result;
     }
 }

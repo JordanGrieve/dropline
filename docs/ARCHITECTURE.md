@@ -90,6 +90,16 @@ Plus two state messages: `{ "state": "open" }` at drop time and
 everything else. This is why STOMP is not here. There is nothing to
 subscribe to but the one channel.
 
+## Ordering across instances
+
+With Redis in the path, every instance publishes to one channel and
+delivers whatever it receives, its own changes included. So all instances
+deliver the same sequence. One trap, found by the fan-out test: Spring's
+listener container hands each message to a new thread by default, and
+deliveries overtake each other. A viewer could see 10 then 99. The
+container is given a single dispatch thread so the counter only ever goes
+down.
+
 ## Reconnection
 
 A client that drops and reconnects does not need a replay. The server sends

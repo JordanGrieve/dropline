@@ -11,9 +11,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 /**
- * Pushes one number to every connection on this instance. Week 4 adds a
- * Redis fan-out so that other instances do the same; this class does not
- * change shape for that, it just gains a second caller.
+ * Holds this instance's connections and pushes one number to all of them.
+ * It never decides where a change came from; a {@link StockPublisher} calls
+ * {@link #deliver} whether the change happened here or on another instance.
  */
 @Component
 public class StockBroadcaster {
@@ -34,7 +34,8 @@ public class StockBroadcaster {
         return sessions.size();
     }
 
-    public void publish(int remaining, DropState state) {
+    /** Sends to every connection on this instance. */
+    public void deliver(int remaining, DropState state) {
         TextMessage message = new TextMessage(json(remaining, state));
         for (WebSocketSession s : sessions) {
             send(s, message);

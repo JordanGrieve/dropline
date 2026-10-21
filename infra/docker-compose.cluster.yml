@@ -1,0 +1,105 @@
+# Week 4, locally: the shape that goes to AWS, on one machine.
+#
+#   two app instances, nginx in front, Postgres, Redis for fan-out, otel-lgtm
+#
+# Everything app-facing stays on the Compose network, so k6 run from the
+# same network talks Linux to Linux and the Windows backlog cap (run 2 in
+# docs/results/NOTES.md) is out of the picture.
+#
+#   docker compose -f infra/docker-compose.cluster.yml up -d --build
+#   docker compose -f infra/docker-compose.cluster.yml --profile load run --rm k6 run -e VUS=10000 /load/headline.js
+#   docker compose -f infra/docker-compose.cluster.yml down -v
+
+name: dropline-cluster
+
+x-app: &app
+  build: ../backend
+  environment: &app-env
+    DB_URL: jdbc:postgresql://postgres:5432/dropline
+    DB_USER: dropline
+    DB_PASSWORD: dropline
+    REDIS_HOST: redis
+    REDIS_HEALTH: "true"
+    FANOUT: redis
+    OTEL_ENABLED: "1"
+    OTEL_SERVICE_NAME: dropline
+    OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+    OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+    OTEL_METRIC_EXPORT_INTERVAL: "5000"
+    OTEL_LOGS_EXPORTER: otlp
+    JAVA_OPTS: -XX:MaxRAMPercentage=75
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: dropline
+      POSTGRES_USER: dropline
+      POSTGRES_PASSWORD: dropline
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dropline"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    ports:
+      - "3000:3000"
+    environment:
+      ENABLE_LOGS_ALL: "false"
+
+  app1:
+    <<: *app
+    environment:
+      <<: *app-env
+      INSTANCE_ID: app1
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=cluster,service.instance.id=app1
+
+  app2:
+    <<: *app
+    environment:
+      <<: *app-env
+      INSTANCE_ID: app2
+      OTEL_RESOURCE_ATTRIBUTES: deployment.environment=cluster,service.instance.id=app2
+
+  edge:
+    build:
+      context: ..
+      dockerfile: infra/edge.Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - app1
+      - app2
+    restart: unless-stopped
+
+  # k6 on the same network. Profile "load" keeps it out of "up".
+  k6:
+    image: grafana/k6:latest
+    profiles: ["load"]
+    environment:
+      BASE_URL: http://edge:80
+    volumes:
+      - ../load:/load:ro
+      - ../docs/results:/results
+    working_dir: /load
+
+volumes:
+  pgdata:

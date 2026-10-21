@@ -45,9 +45,14 @@ Zero rows affected means sold out.
 
 ## Status
 
-Started 21 October 2026. Weeks 1 to 3 done the same day: the atomic
-purchase with its concurrency test and the deliberate oversell, the page
-and the live counter, the OpenTelemetry agent into Grafana, and the first
-k6 runs. The headline run has passed once on one instance; see
-[docs/results/NOTES.md](docs/results/NOTES.md). Week 4, more than one
-instance on AWS, is next.
+Started 21 October 2026. Weeks 1 to 4 done the same day, with week 4 run
+locally in Docker rather than on AWS so far: the atomic purchase with its
+concurrency test and the deliberate oversell, the page and the live
+counter, the OpenTelemetry agent into Grafana, k6 as the acceptance test,
+and two instances behind nginx with Redis fan-out.
+
+**The headline has been earned.** 10,000 simultaneous buyers, two
+instances, exactly 100 sold, three runs in a row. See
+[docs/results/NOTES.md](docs/results/NOTES.md). Still to do: the same shape
+on AWS, torn down the same day, the other two concurrency strategies, the
+instance-kill and network-drop experiments, and the writeup.
