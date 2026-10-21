@@ -7,7 +7,8 @@ export function ProductImage({ name, imageUrl }: Props) {
   if (imageUrl) {
     return (
       <div className="product-image">
-        <img src={imageUrl} alt={name} />
+        <div className="product-glow" aria-hidden="true" />
+        <img src={imageUrl} alt={name} width="554" height="923" decoding="async" fetchPriority="high" />
       </div>
     )
   }

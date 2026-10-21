@@ -18,6 +18,9 @@ Open `http://localhost:5173/?mock` to drive every state without a backend:
 | `/?mock=low` | Open, 11 left, one purchase away from the low-stock state |
 | `/?mock=soldout` | Sold out |
 
+Every mock state also has the demo panel: "Simulate 200 buyers" walks the
+counter down in steps, "Reset the drop" puts it back.
+
 Without `?mock` the page talks to the backend through Vite's proxy on 8080.
 The contract it expects is at the top of `src/types.ts`.
 

@@ -42,7 +42,7 @@ class ApiContractTest {
     void dropCarriesEveryFieldThePageReads() {
         open(100);
         var d = drop();
-        assertThat(d).containsKeys("name", "pricePence", "currency", "imageUrl", "totalUnits", "opensAt", "remaining", "state", "serverTime");
+        assertThat(d).containsKeys("name", "description", "pricePence", "currency", "imageUrl", "totalUnits", "opensAt", "remaining", "state", "serverTime", "demo");
         assertThat(d.get("state")).isEqualTo("open");
         assertThat(d.get("remaining")).isEqualTo(100);
         assertThat(Instant.parse((String) d.get("serverTime"))).isAfter(Instant.now().minusSeconds(30));
@@ -76,6 +76,23 @@ class ApiContractTest {
         var status = statusOf(() -> client().post().uri(URI.create("/api/purchase"))
                 .body(Map.of("buyerName", "   ")).retrieve().toBodilessEntity());
         assertThat(status).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void simulateSellsExactlyTheStockAndResetPutsItBack() {
+        open(100);
+        var r = client().post().uri(URI.create("/api/demo/simulate"))
+                .body(Map.of("buyers", 200)).retrieve().body(Map.class);
+        assertThat(r).containsEntry("buyers", 200).containsEntry("sold", 100)
+                .containsEntry("soldOut", 100).containsEntry("failed", 0).containsEntry("remaining", 0);
+        assertThat(drop().get("state")).isEqualTo("soldout");
+
+        var reset = client().post().uri(URI.create("/api/demo/reset")).retrieve().body(Map.class);
+        assertThat(reset).containsEntry("remaining", 100);
+        assertThat(drop().get("state")).isEqualTo("open");
+        assertThat(drop().get("remaining")).isEqualTo(100);
+        assertThat(jdbc.sql("SELECT count(*) FROM purchase").query(Integer.class).single()).isZero();
     }
 
     private static HttpStatus statusOf(Runnable call) {

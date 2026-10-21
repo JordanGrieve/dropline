@@ -66,6 +66,13 @@ be running. Three test classes matter:
 | POST | `/api/purchase` | 201 with unit and remaining, 409 sold out, 425 not open, 400 bad name |
 | WS | `/ws` | `{"remaining": n, "state": "open"}` on connect and on every change |
 | GET | `/actuator/health` | Liveness for the load balancer |
+| POST | `/api/demo/simulate` | `{"buyers": 200}` fires that many purchases at once through the real path; returns sold, soldOut, remaining |
+| POST | `/api/demo/reset` | Full stock, open now, audit trail cleared |
+
+The two demo routes are the page's "Simulate 200 buyers" and "Reset the
+drop" buttons. `DEMO_ENABLED=false` removes them and `GET /api/drop`
+reports `demo: false`, so the page hides the panel. Buyers are capped at
+2,000 per press; the load numbers still come from k6.
 
 ## Strategy
 

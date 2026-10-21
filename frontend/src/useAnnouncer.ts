@@ -28,7 +28,14 @@ export function useAnnouncer() {
     else pending.current = window.setTimeout(emit, wait)
   }, [])
 
+  /** After a reset every milestone may happen again, so forget what was said. */
+  const forget = useCallback(() => {
+    window.clearTimeout(pending.current)
+    spoken.current.clear()
+    setText('')
+  }, [])
+
   useEffect(() => () => window.clearTimeout(pending.current), [])
 
-  return { text, say }
+  return { text, say, forget }
 }

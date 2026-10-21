@@ -46,9 +46,12 @@ class DeliberateOversellTest {
         @Override public String name() { return "unguarded"; }
 
         @Override public OptionalInt reserve(long dropId) {
-            // Read, then think, then write. The canonical race.
+            // Read, then think, then write. The canonical race. The pause is
+            // the "think": any real work between the read and the write,
+            // without it the window is too small to hit reliably.
             int seen = jdbc.sql("SELECT remaining FROM stock WHERE drop_id = :id").param("id", dropId).query(Integer.class).single();
             if (seen <= 0) return OptionalInt.empty();
+            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
             int after = jdbc.sql("UPDATE stock SET remaining = remaining - 1 WHERE drop_id = :id RETURNING remaining")
                     .param("id", dropId).query(Integer.class).single();
             return OptionalInt.of(after);

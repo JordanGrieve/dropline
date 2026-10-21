@@ -8,8 +8,8 @@ import org.springframework.stereotype.Repository;
 public class DropRepository {
 
     /** The drop joined to its stock row. Read at page load and on each WebSocket connect. */
-    public record DropRow(long id, String name, int pricePence, String currency, String imageUrl,
-                          Instant opensAt, int totalUnits, int remaining) {}
+    public record DropRow(long id, String name, String description, int pricePence, String currency,
+                          String imageUrl, Instant opensAt, int totalUnits, int remaining) {}
 
     private final JdbcClient jdbc;
 
@@ -19,7 +19,7 @@ public class DropRepository {
 
     public DropRow find(long dropId) {
         return jdbc.sql("""
-                SELECT d.id, d.name, d.price_pence, d.currency, d.image_url,
+                SELECT d.id, d.name, d.description, d.price_pence, d.currency, d.image_url,
                        d.opens_at, d.total_units, s.remaining
                   FROM drop d
                   JOIN stock s ON s.drop_id = d.id
@@ -29,6 +29,7 @@ public class DropRepository {
                 .query((rs, i) -> new DropRow(
                         rs.getLong("id"),
                         rs.getString("name"),
+                        rs.getString("description"),
                         rs.getInt("price_pence"),
                         rs.getString("currency"),
                         rs.getString("image_url"),

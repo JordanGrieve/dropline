@@ -11,6 +11,7 @@ erDiagram
     DROP {
         bigint id PK
         text name
+        text description
         integer price_pence
         text currency
         text image_url

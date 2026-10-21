@@ -81,9 +81,16 @@ and small components for the opening line, the counter, the form and the
 status panel.
 
 What keeps the scope tiny is not the absence of a framework but the absence
-of everything else: no component library, no state library, no router, no
-CSS framework. One page, plain CSS with the design's tokens as custom
-properties, and every number on the page read from the backend.
+of everything else: no component library, no state library, no router. One
+page, plain CSS with the design's tokens as custom properties, and every
+number on the page read from the backend.
+
+One exception, made on purpose: the request-path illustration on the
+backend page uses Magic UI's Animated Beam, which brings the `motion`
+library and Tailwind. Tailwind is loaded as utilities only, with no
+preflight reset, so the page's own CSS stays in charge; the Magic UI file
+lives under `components/ui` unchanged so it can be updated from the
+registry.
 
 The earlier plan was plain HTML to evidence that skill directly. That
 evidence is given up here in favour of matching the design; the plain CSS,

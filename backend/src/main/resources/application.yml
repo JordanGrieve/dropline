@@ -43,6 +43,9 @@ management:
 
 dropline:
   drop-id: 1
+  demo:
+    # The simulate and reset buttons on the page. Off for a real drop.
+    enabled: ${DEMO_ENABLED:true}
   # local: one instance, broadcast in memory.
   # redis: every instance publishes to Redis and delivers what it receives.
   fanout: ${FANOUT:local}

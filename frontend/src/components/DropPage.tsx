@@ -3,7 +3,10 @@ import { formatPrice } from '../format'
 import { LOW_STOCK_AT, type DropClient } from '../types'
 import { useAnnouncer } from '../useAnnouncer'
 import { useDrop } from '../useDrop'
+import { useRoute } from '../useRoute'
+import { BackendPage } from './BackendPage'
 import { BuyForm } from './BuyForm'
+import { Nav } from './Nav'
 import { Opening } from './Opening'
 import { ProductImage } from './ProductImage'
 import { StatusPanel } from './StatusPanel'
@@ -15,7 +18,8 @@ interface Props {
 
 export function DropPage({ client }: Props) {
   const d = useDrop(client)
-  const { text: announcement, say } = useAnnouncer()
+  const { view, go } = useRoute()
+  const { text: announcement, say, forget } = useAnnouncer()
   const statusRef = useRef<HTMLDivElement>(null)
   const total = d.drop?.totalUnits ?? 0
 
@@ -49,6 +53,7 @@ export function DropPage({ client }: Props) {
       <main className="card">
         <header className="masthead">
           <span className="wordmark">Dropline</span>
+          <Nav view={view} go={go} />
         </header>
         <p role="alert">The drop could not be loaded. Refresh to try again.</p>
       </main>
@@ -56,14 +61,22 @@ export function DropPage({ client }: Props) {
   }
 
   const drop = d.drop
+  const reset = () => {
+    forget()
+    void d.reset()
+  }
 
   return (
-    <main className="card" data-phase={d.phase} data-moment={d.moment}>
+    <main className="card" data-phase={d.phase} data-moment={d.moment} data-view={view}>
       <header className="masthead">
         <span className="wordmark">Dropline</span>
+        <Nav view={view} go={go} />
         <p className="meta">Edition 001 · {drop ? `${total} units` : '…'}</p>
       </header>
 
+      {view === 'backend' && <BackendPage d={d} total={total} onReset={reset} />}
+
+      {view === 'home' && (
       <div className="layout">
         <ProductImage name={drop?.name ?? 'Product'} imageUrl={drop?.imageUrl ?? null} />
 
@@ -72,9 +85,12 @@ export function DropPage({ client }: Props) {
 
           <StockCounter phase={d.phase} remaining={d.remaining} total={total} announcement={announcement} />
 
-          <div className="title-row">
-            <h1>{drop?.name ?? 'Loading the drop'}</h1>
-            {drop && <p className="price">{formatPrice(drop.pricePence, drop.currency)}</p>}
+          <div className="title-block">
+            <div className="title-row">
+              <h1>{drop?.name ?? 'Loading the drop'}</h1>
+              {drop && <p className="price">{formatPrice(drop.pricePence, drop.currency)}</p>}
+            </div>
+            {drop?.description && <p className="description">{drop.description}</p>}
           </div>
 
           {d.phase !== 'soldout' && <BuyForm phase={d.phase} moment={d.moment} opensAt={drop?.opensAt ?? ''} onBuy={d.buy} />}
@@ -91,6 +107,7 @@ export function DropPage({ client }: Props) {
           />
         </section>
       </div>
+      )}
     </main>
   )
 }

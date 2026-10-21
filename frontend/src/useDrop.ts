@@ -2,11 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   LOW_STOCK_AT,
   PurchaseError,
+  SIMULATED_BUYERS,
   type DropClient,
   type DropInfo,
   type Moment,
   type Phase,
   type ServerState,
+  type SimulationResult,
 } from './types'
 
 export interface DropState {
@@ -21,6 +23,14 @@ export interface DropState {
   unit: number | null
   buyerName: string
   buy: (buyerName: string) => Promise<void>
+  /** The demo buttons. 'running' while a stampede is in flight. */
+  simulation: SimulationResult | 'running' | 'error' | null
+  /** Round trip of the last stampede in milliseconds, as the page saw it. */
+  latencyMs: number | null
+  /** Counts this viewer's own purchase attempts, for the wire animation. */
+  pulse: number
+  simulate: () => Promise<void>
+  reset: () => Promise<void>
 }
 
 const RECONNECT_BASE_MS = 500
@@ -36,6 +46,9 @@ export function useDrop(client: DropClient): DropState {
   const [moment, setMoment] = useState<Moment>('none')
   const [unit, setUnit] = useState<number | null>(null)
   const [buyerName, setBuyerName] = useState('')
+  const [simulation, setSimulation] = useState<SimulationResult | 'running' | 'error' | null>(null)
+  const [latencyMs, setLatencyMs] = useState<number | null>(null)
+  const [pulse, setPulse] = useState(0)
   const offsetRef = useRef(0)
 
   // 1. The drop itself, once.
@@ -115,6 +128,7 @@ export function useDrop(client: DropClient): DropState {
     async (name: string) => {
       setBuyerName(name)
       setMoment('pending')
+      setPulse((p) => p + 1)
       try {
         const r = await client.purchase(name)
         setUnit(r.unit)
@@ -133,6 +147,36 @@ export function useDrop(client: DropClient): DropState {
     [client],
   )
 
+  const simulate = useCallback(async () => {
+    setSimulation('running')
+    const started = performance.now()
+    try {
+      const r = await client.simulate(SIMULATED_BUYERS)
+      setLatencyMs(Math.round(performance.now() - started))
+      setRemaining(r.remaining)
+      if (r.remaining <= 0) setServerState('soldout')
+      setSimulation(r)
+    } catch {
+      setSimulation('error')
+    }
+  }, [client])
+
+  // Back to the start: full stock, open, and this viewer's own result cleared.
+  const reset = useCallback(async () => {
+    try {
+      await client.reset()
+      setSimulation(null)
+      setLatencyMs(null)
+      setPulse(0)
+      setMoment('none')
+      setUnit(null)
+      setServerState('open')
+      if (drop) setRemaining(drop.totalUnits)
+    } catch {
+      setSimulation('error')
+    }
+  }, [client, drop])
+
   return {
     phase,
     drop,
@@ -144,5 +188,10 @@ export function useDrop(client: DropClient): DropState {
     unit,
     buyerName,
     buy,
+    simulation,
+    latencyMs,
+    pulse,
+    simulate,
+    reset,
   }
 }

@@ -8,12 +8,19 @@
  *                                            425 drop not open yet
  *   WS   /ws                -> StockMessage, one per change; a full snapshot
  *                              on every new connection
+ *
+ * The demo routes exist only when DropInfo.demo is true (DEMO_ENABLED):
+ *
+ *   POST /api/demo/simulate { buyers }  -> SimulationResult. That many buyers
+ *                                          hit the real purchase path at once.
+ *   POST /api/demo/reset                -> { remaining }. Full stock, open now.
  */
 
 export type ServerState = 'before' | 'open' | 'soldout'
 
 export interface DropInfo {
   name: string
+  description: string
   pricePence: number
   currency: string
   imageUrl: string | null
@@ -22,12 +29,26 @@ export interface DropInfo {
   remaining: number
   state: ServerState
   serverTime: string
+  /** The simulate and reset buttons are shown only when this is true. */
+  demo: boolean
 }
 
 export interface PurchaseResult {
   unit: number
   remaining: number
 }
+
+export interface SimulationResult {
+  buyers: number
+  sold: number
+  soldOut: number
+  notOpen: number
+  failed: number
+  remaining: number
+}
+
+/** How many buyers the demo button fires at once. */
+export const SIMULATED_BUYERS = 200
 
 export type StockMessage =
   | { remaining: number; state?: ServerState }
@@ -54,4 +75,6 @@ export interface DropClient {
   purchase(buyerName: string): Promise<PurchaseResult>
   /** Returns an unsubscribe function. onClose fires when the connection drops. */
   subscribe(onMessage: (m: StockMessage) => void, onClose: () => void): () => void
+  simulate(buyers: number): Promise<SimulationResult>
+  reset(): Promise<void>
 }

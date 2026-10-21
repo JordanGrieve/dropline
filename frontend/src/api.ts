@@ -5,6 +5,7 @@ import {
   type DropInfo,
   type PurchaseResult,
   type ServerState,
+  type SimulationResult,
   type StockMessage,
 } from './types'
 
@@ -26,6 +27,21 @@ export const httpClient: DropClient = {
     if (res.status === 425) throw new PurchaseError('notopen', 'Not open yet')
     if (!res.ok) throw new PurchaseError('error', `POST /api/purchase ${res.status}`)
     return (await res.json()) as PurchaseResult
+  },
+
+  async simulate(buyers) {
+    const res = await fetch('/api/demo/simulate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ buyers }),
+    })
+    if (!res.ok) throw new Error(`POST /api/demo/simulate ${res.status}`)
+    return (await res.json()) as SimulationResult
+  },
+
+  async reset() {
+    const res = await fetch('/api/demo/reset', { method: 'POST', headers: { Accept: 'application/json' } })
+    if (!res.ok) throw new Error(`POST /api/demo/reset ${res.status}`)
   },
 
   subscribe(onMessage, onClose) {
@@ -61,6 +77,10 @@ export function mockClient(start: string): DropClient {
   const listeners = new Set<(m: StockMessage) => void>()
 
   const broadcast = (m: StockMessage) => listeners.forEach((l) => l(m))
+  // While a simulated stampede walks the stock down, the background
+  // trickle pauses. Two writers on one number is exactly the bug the real
+  // system exists to prevent; the mock must not reproduce it.
+  let busy = false
 
   setInterval(() => {
     if (state === 'before' && Date.now() >= opensAt) {
@@ -68,7 +88,7 @@ export function mockClient(start: string): DropClient {
       broadcast({ state, remaining })
       return
     }
-    if (state !== 'open') return
+    if (state !== 'open' || busy) return
     const drop = remaining > 12 ? Math.floor(Math.random() * 6) : Math.random() < 0.45 ? 1 : 0
     if (drop === 0) return
     remaining = Math.max(0, remaining - drop)
@@ -80,14 +100,16 @@ export function mockClient(start: string): DropClient {
     async getDrop() {
       return {
         name: 'Dropline Watch, Edition 001',
+        description: 'Brushed steel case and bracelet, matte black dial, luminous indices. One hundred made, numbered.',
         pricePence: 25000,
         currency: 'GBP',
-        imageUrl: null,
+        imageUrl: '/watch.png',
         totalUnits: total,
         opensAt: new Date(opensAt).toISOString(),
         remaining,
         state,
         serverTime: new Date().toISOString(),
+        demo: true,
       }
     },
     purchase() {
@@ -107,6 +129,35 @@ export function mockClient(start: string): DropClient {
       listeners.add(onMessage)
       queueMicrotask(() => onMessage({ remaining, state }))
       return () => listeners.delete(onMessage)
+    },
+    simulate(buyers) {
+      // The stock falls in a few steps so the counter is seen moving.
+      return new Promise((resolve) => {
+        busy = true
+        const notOpen = state === 'before' ? buyers : 0
+        const sold = state === 'before' ? 0 : Math.min(buyers, remaining)
+        let left = sold
+        const tick = () => {
+          // Never below zero, whatever happened to the stock meanwhile.
+          const step = Math.min(left, remaining, Math.max(1, Math.ceil(sold / 6)))
+          remaining -= step
+          left -= step
+          if (remaining === 0) state = 'soldout'
+          broadcast({ remaining, state })
+          if (left > 0 && remaining > 0) setTimeout(tick, 120)
+          else {
+            busy = false
+            const actuallySold = sold - left
+            resolve({ buyers, sold: actuallySold, soldOut: buyers - actuallySold - notOpen, notOpen, failed: 0, remaining })
+          }
+        }
+        setTimeout(tick, 300)
+      })
+    },
+    async reset() {
+      remaining = total
+      state = 'open'
+      broadcast({ remaining, state })
     },
   }
 }
