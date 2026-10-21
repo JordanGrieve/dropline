@@ -65,11 +65,13 @@ export function Wire({ running, result, latencyMs, pulse, remaining, total, ref 
   // Running: hard and continuous. Settled and single: one pass, in order.
   const beam =
     mode === 'running'
-      ? { duration: 1.2, repeat: Infinity, repeatDelay: 0, width: 2.5 }
+      ? { duration: 2, repeat: Infinity, repeatDelay: 0.2, width: 2.5 }
       : mode === 'idle'
         ? { duration: 4, repeat: Infinity, repeatDelay: 3, width: 1.5 }
-        : { duration: 1.1, repeat: 0, repeatDelay: 0, width: 2.5 }
-  const stagger = mode === 'running' || mode === 'idle' ? 0 : 0.28
+        : { duration: 2, repeat: 0, repeatDelay: 0, width: 2.5 }
+  // Settled and single: the segments light up one after another, so the
+  // eye follows the request from the buyers to the stock row.
+  const stagger = mode === 'running' ? 0.35 : mode === 'idle' ? 0 : 0.6
 
   const segments: [RefObject<HTMLSpanElement | null>, RefObject<HTMLSpanElement | null>][] = [
     [buyers, edge],
@@ -111,8 +113,8 @@ export function Wire({ running, result, latencyMs, pulse, remaining, total, ref 
               pathWidth={2.5}
               gradientStartColor={muted}
               gradientStopColor={muted}
-              duration={1.2}
-              delay={0.9}
+              duration={1.6}
+              delay={1.9}
               repeat={0}
             />
           )}

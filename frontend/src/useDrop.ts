@@ -33,6 +33,9 @@ export interface DropState {
   reset: () => Promise<void>
 }
 
+/** How long the stampede is shown running, whatever the server's speed. */
+const MIN_RUNNING_MS = 3500
+
 const RECONNECT_BASE_MS = 500
 const RECONNECT_MAX_MS = 8000
 
@@ -151,12 +154,21 @@ export function useDrop(client: DropClient): DropState {
     setSimulation('running')
     const started = performance.now()
     try {
-      const r = await client.simulate(SIMULATED_BUYERS)
-      setLatencyMs(Math.round(performance.now() - started))
+      // The server answers in well under a second, which is the point, but
+      // the page holds the running state long enough to be seen. The round
+      // trip shown is the real one.
+      const [r] = await Promise.all([
+        client.simulate(SIMULATED_BUYERS).then((res) => {
+          setLatencyMs(Math.round(performance.now() - started))
+          return res
+        }),
+        new Promise((resolve) => setTimeout(resolve, MIN_RUNNING_MS)),
+      ])
       setRemaining(r.remaining)
       if (r.remaining <= 0) setServerState('soldout')
       setSimulation(r)
-    } catch {
+    } catch (e) {
+      console.error('simulate failed', e)
       setSimulation('error')
     }
   }, [client])

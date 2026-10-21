@@ -563,7 +563,7 @@ p {
   display: flex;
   flex-direction: column;
   gap: var(--s-8);
-  max-width: 64rem;
+  width: 100%;
 }
 .backend-intro {
   display: flex;
@@ -577,7 +577,7 @@ p {
   line-height: 1.15;
 }
 .backend-intro .muted {
-  max-width: 40rem;
+  max-width: 56rem;
   font-size: 0.9375rem;
 }
 .sql {
@@ -713,12 +713,12 @@ p {
   text-transform: uppercase;
   color: var(--copper);
   white-space: nowrap;
-  animation: wire-fade-in 300ms ease-out 1.1s both;
+  animation: wire-fade-in 300ms ease-out 2.2s both;
 }
 
 /* Settled: the stock row takes the hit once the forward pass lands. */
 .wire[data-mode='settled'] .wire-icon.stock {
-  animation: wire-pulse 500ms ease-out 0.9s;
+  animation: wire-pulse 600ms ease-out 1.9s;
 }
 
 @keyframes wire-pulse {
