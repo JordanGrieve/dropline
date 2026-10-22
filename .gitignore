@@ -30,6 +30,7 @@ infra/terraform/*.tfstate
 infra/terraform/*.tfstate.backup
 infra/terraform/*.tfvars
 
-# Secrets
+# Secrets. The template is not one.
 .env
 .env.*
+!.env.example
