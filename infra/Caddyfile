@@ -1,0 +1,10 @@
+# TLS termination in front of the nginx edge. Caddy obtains and renews the
+# certificate for {$DOMAIN} from Let's Encrypt automatically, and passes
+# WebSocket upgrades through untouched.
+
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy edge:80 {
+		header_up X-Forwarded-Proto {scheme}
+	}
+}

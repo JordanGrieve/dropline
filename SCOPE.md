@@ -33,8 +33,9 @@ number of instances.
 **Observability**, so that when something breaks under load there is a trace
 explaining it rather than a guess.
 
-**Deployment to AWS**, as a target to measure against rather than a permanent
-home.
+**Deployment to a public server**: the two-instance shape on one small VPS
+with Docker Compose, behind TLS, as a permanent link. AWS was the original
+target and was dropped on cost; see TECH-STACK.md.
 
 ## Out of scope
 
@@ -86,9 +87,10 @@ Attach the OpenTelemetry Java agent, run the Grafana backend, confirm traces
 and metrics arrive. Then k6 from this machine: ramp connections until
 something breaks. Write down the number and what broke.
 
-**Week 4, more than one instance, on AWS.**
-Two app instances behind a load balancer, Redis for fan-out, managed Postgres.
-Run the load test against it. Capture the numbers. Tear it down the same day.
+**Week 4, more than one instance.**
+Two app instances behind nginx, Redis for fan-out, Postgres, all in Docker
+Compose. Run the load test against it from inside the same network, so the
+numbers are Linux to Linux. Then the same Compose file on a public VPS.
 
 **Week 5, the experiments and the writeup.**
 See SUCCESS.md. The writeup is the deliverable; the code is what makes it
@@ -98,6 +100,6 @@ possible.
 
 Five weeks of evenings and weekends, alongside a full time job.
 
-If it runs over, the things to cut are AWS, Terraform and the third
-concurrency strategy. The things never to cut are the conditional UPDATE, the
+If it runs over, the things to cut are the public deployment, Terraform and
+the third concurrency strategy. The things never to cut are the conditional UPDATE, the
 concurrency test that has been watched failing, and the load test numbers.

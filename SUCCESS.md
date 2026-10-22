@@ -73,7 +73,8 @@ The project is finished when all of these are true:
 - [ ] The breaking point is known, with a number and a cause.
 - [x] Traces from a real load run are in Grafana and screenshotted.
       (`docs/results/2026-10-21-trace-purchase-409.jpg`, 21 October 2026)
-- [ ] It has run on AWS across more than one instance, and been torn down.
+- [ ] It runs on a public server across two instances, behind TLS, at a
+      link a human can open. (AWS was the original line; dropped on cost.)
 - [ ] The page meets WCAG 2.2 AA, with the live region behaviour actually
       tested rather than assumed. See ACCESSIBILITY.md.
 - [ ] The writeup is published on jordangrieve.com and linked from the repo.

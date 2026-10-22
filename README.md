@@ -30,6 +30,7 @@ CV already tells.
 | [SUCCESS.md](SUCCESS.md) | What finished looks like, and the numbers that decide it |
 | [TECH-STACK.md](TECH-STACK.md) | Every choice and why it was made |
 | [ACCESSIBILITY.md](ACCESSIBILITY.md) | A live updating page is hard to make accessible. This is how |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | The whole thing on one small VPS, in an hour |
 
 ## The line it all turns on
 
@@ -54,5 +55,6 @@ and two instances behind nginx with Redis fan-out.
 **The headline has been earned.** 10,000 simultaneous buyers, two
 instances, exactly 100 sold, three runs in a row. See
 [docs/results/NOTES.md](docs/results/NOTES.md). Still to do: the same shape
-on AWS, torn down the same day, the other two concurrency strategies, the
-instance-kill and network-drop experiments, and the writeup.
+on a public VPS ([docs/DEPLOY.md](docs/DEPLOY.md)), the other two
+concurrency strategies, the instance-kill and network-drop experiments, and
+the writeup.

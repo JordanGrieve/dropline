@@ -132,28 +132,34 @@ evening.
 k6 is part of the build from week 3, not a thing run once at the end. The load
 test is the acceptance test.
 
-## Hosting: AWS, as a demo target
+## Hosting: one small VPS, Docker Compose, Caddy for TLS
 
-**Chosen to close a gap.** jordangrieve.com claims AWS and GCP, and every
-project is on Vercel, Cloudflare or Cloud Run. That is a question I do not
-want asked.
+The original plan was AWS, a load balancer, managed Postgres and managed
+Redis, for a day, to close a gap on the CV. That shape is £50 to £100 a
+month and the gap is not worth that. Dropped.
 
-Shape: two application instances behind a load balancer, managed Postgres,
-managed Redis.
+What runs instead is the cluster Compose file that produced the numbers in
+`docs/results/NOTES.md`, on a 2 vCPU / 4 GB VPS for about £4 a month:
+two app instances, the nginx edge, Postgres, Redis, Caddy in front for the
+certificate, and a nightly reset so a public drop is not permanently sold
+out. Memory limits on every service so two JVMs and the databases share
+the box politely. The observability stack is a profile, started only when
+the dashboard is wanted, and reachable only over an SSH tunnel.
 
-**Cost discipline, before anything is deployed:**
+The writeup says this plainly: the measured shape is the deployed shape,
+on one machine. It does not imply a production fleet.
 
-- Set a budget alert and a spend limit in AWS Settings **first**.
-- That shape running continuously is roughly £50 to £100 a month, and nobody
-  is paying it but me.
-- Deploy, measure, tear down the same day.
-- A single small EC2 running Docker Compose covers most of the exercise for a
-  fraction of the cost. If that is the route taken, say so in the writeup
-  rather than implying a production deployment.
+`docs/DEPLOY.md` is the hour it takes.
 
-## Infrastructure as code: Terraform, if time allows
+Why not a platform: Vercel has no Java runtime and nothing that holds a
+WebSocket open, so it could host only the static page. Railway would run
+the whole thing without a server to manage, at roughly three to five times
+the price, for a project whose point is partly that the server is
+understood.
 
-Nice to have. First thing to cut if week 4 runs long.
+## Infrastructure as code: Terraform, dropped with AWS
+
+There is nothing to declare: one machine and one Compose file.
 
 ## What is explicitly not here
 
