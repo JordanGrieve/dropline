@@ -1,0 +1,394 @@
+{
+  "uid": "dropline",
+  "title": "Dropline",
+  "tags": ["dropline"],
+  "timezone": "browser",
+  "editable": false,
+  "graphTooltip": 1,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "schemaVersion": 39,
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Stock remaining",
+      "description": "Read from the stock row at every export. The one number that must be exact.",
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "max(dropline_stock_remaining{service_name=\"dropline\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#EAB28D" },
+          "unit": "none",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Sold",
+      "description": "Units reserved since the instances started, by the service's own counter, so the demo stampede counts too.",
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(dropline_purchases_total{service_name=\"dropline\", result=\"sold\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "#EAB28D" }, "unit": "none", "decimals": 0 },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Turned away",
+      "description": "Told sold out since the instances started. The correct answer for most buyers.",
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(dropline_purchases_total{service_name=\"dropline\", result=\"sold_out\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "#8C877E" }, "unit": "none", "decimals": 0 },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Purchase p99",
+      "description": "HTTP purchases over the dashboard's time range, both instances together. The demo stampede runs in-process and is not an HTTP request, so it does not appear here; the page's Buy button and k6 do.",
+      "gridPos": { "h": 5, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum by (le) (increase(http_server_request_duration_seconds_bucket{service_name=\"dropline\", http_route=\"/api/purchase\"}[$__range])))",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "#F2EFE8" }, "unit": "s", "decimals": 3 },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "WebSocket viewers",
+      "description": "Open sessions, all instances.",
+      "gridPos": { "h": 5, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(dropline_ws_connections{service_name=\"dropline\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "#F2EFE8" }, "unit": "none", "decimals": 0 },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "DB pool in use",
+      "description": "Connections in use across both instances, of the pool maximum.",
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum(db_client_connections_usage{service_name=\"dropline\", state=\"used\"})",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "fixed", "fixedColor": "#F2EFE8" }, "unit": "none", "decimals": 0 },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value"
+      }
+    },
+
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Purchases per second: sold against turned away",
+      "description": "Every purchase attempt by outcome, from the service's own counter, so the page's Buy button, k6 and the demo stampede all count. Sold is a unit reserved (201); turned away is sold out (409).",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (result) (rate(dropline_purchases_total{service_name=\"dropline\"}[1m]))",
+          "legendFormat": "{{result}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 12, "showPoints": "never", "stacking": { "mode": "none" } }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "sold" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#EAB28D" } }, { "id": "displayName", "value": "sold (201)" }] },
+          { "matcher": { "id": "byName", "options": "sold_out" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#8C877E" } }, { "id": "displayName", "value": "turned away (409)" }] },
+          { "matcher": { "id": "byName", "options": "not_open" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#C8C3B9" } }, { "id": "displayName", "value": "not open (425)" }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Purchase latency: p50, p95, p99",
+      "description": "Server-side, HTTP purchases only, both instances together. The tail is the experience. The demo stampede is in-process and does not appear here; k6 and the Buy button do.",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "p50",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=\"dropline\", http_route=\"/api/purchase\"}[1m])))",
+          "legendFormat": "p50"
+        },
+        {
+          "refId": "p95",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=\"dropline\", http_route=\"/api/purchase\"}[1m])))",
+          "legendFormat": "p95"
+        },
+        {
+          "refId": "p99",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_request_duration_seconds_bucket{service_name=\"dropline\", http_route=\"/api/purchase\"}[1m])))",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 0, "showPoints": "never" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "p50" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#C8C3B9" } }] },
+          { "matcher": { "id": "byName", "options": "p95" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#EAB28D" } }] },
+          { "matcher": { "id": "byName", "options": "p99" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#F2EFE8" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Stock remaining",
+      "description": "Should only ever go down between resets. A step up is a reset; anything below zero is the oversell test, or a bug.",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "max(dropline_stock_remaining{service_name=\"dropline\"})",
+          "legendFormat": "remaining"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "color": { "mode": "fixed", "fixedColor": "#EAB28D" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2, "fillOpacity": 15, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "hidden", "showLegend": false }, "tooltip": { "mode": "single" } }
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "WebSocket connections per instance",
+      "description": "Each instance only knows its own viewers. Redis carries every change to all of them.",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "dropline_ws_connections{service_name=\"dropline\"}",
+          "legendFormat": "{{service_instance_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never", "stacking": { "mode": "normal" } }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "app1" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#EAB28D" } }] },
+          { "matcher": { "id": "byName", "options": "app2" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#C8C3B9" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "Database pool per instance",
+      "description": "Hikari: connections in use against the pool maximum, and requests waiting for one. The first dial to turn for the tail.",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "used",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (service_instance_id) (db_client_connections_usage{service_name=\"dropline\", state=\"used\"})",
+          "legendFormat": "{{service_instance_id}} in use"
+        },
+        {
+          "refId": "max",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "max(db_client_connections_max{service_name=\"dropline\"})",
+          "legendFormat": "pool max"
+        },
+        {
+          "refId": "pending",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (service_instance_id) (db_client_connections_pending_requests{service_name=\"dropline\"})",
+          "legendFormat": "{{service_instance_id}} waiting"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "min": 0,
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 0, "showPoints": "never" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "pool max" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#6E6A64" } }, { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [6, 4] } }] },
+          { "matcher": { "id": "byRegexp", "options": ".* in use" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#EAB28D" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".* waiting" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#E5484D" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } }
+    },
+
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Time waiting for a database connection, p99",
+      "description": "When this climbs during a stampede, the pool is the bottleneck. Experiment 5 is about moving it.",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 22 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "histogram_quantile(0.99, sum by (le, service_instance_id) (rate(db_client_connections_wait_time_milliseconds_bucket{service_name=\"dropline\"}[1m])))",
+          "legendFormat": "{{service_instance_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 0, "showPoints": "never" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "app1" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#EAB28D" } }] },
+          { "matcher": { "id": "byName", "options": "app2" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#C8C3B9" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Requests per second by instance",
+      "description": "Whether nginx is splitting the load evenly.",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 22 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "expr": "sum by (service_instance_id) (rate(http_server_request_duration_seconds_count{service_name=\"dropline\"}[1m]))",
+          "legendFormat": "{{service_instance_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "showPoints": "never", "stacking": { "mode": "normal" } }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "app1" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#EAB28D" } }] },
+          { "matcher": { "id": "byName", "options": "app2" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "#C8C3B9" } }] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "multi" } }
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import com.jordangrieve.dropline.TestcontainersConfiguration;
 import com.jordangrieve.dropline.drop.DropRepository;
 import com.jordangrieve.dropline.purchase.strategy.PurchaseStrategy;
 import com.jordangrieve.dropline.realtime.StockPublisher;
+import com.jordangrieve.dropline.web.DropMetrics;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.OptionalInt;
@@ -36,6 +37,7 @@ class DeliberateOversellTest {
     @Autowired DropRepository drops;
     @Autowired TransactionTemplate tx;
     @Autowired StockPublisher publisher;
+    @Autowired DropMetrics metrics;
     @Autowired Clock clock;
 
     /** The same UPDATE with the guard taken out. Test scope only, on purpose. */
@@ -69,7 +71,7 @@ class DeliberateOversellTest {
         jdbc.sql("ALTER TABLE stock DROP CONSTRAINT stock_remaining_nonnegative").update();
         StockFixture.reset(jdbc, DROP_ID, 1, Instant.now().minusSeconds(60));
 
-        var unguarded = new PurchaseService(new UnguardedUpdateStrategy(jdbc), drops, jdbc, tx, publisher, clock, DROP_ID);
+        var unguarded = new PurchaseService(new UnguardedUpdateStrategy(jdbc), drops, jdbc, tx, publisher, metrics, clock, DROP_ID);
 
         int n = 500;
         var go = new CountDownLatch(1);

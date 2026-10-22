@@ -26,6 +26,10 @@ dependencies {
 	otelAgent("io.opentelemetry.javaagent:opentelemetry-javaagent:2.16.0")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	// The API only. With the agent attached it reaches the real SDK; without
+	// it every call is a no-op. Three metrics the dashboard needs that no
+	// auto-instrumentation can know: stock, connections, purchase outcomes.
+	implementation("io.opentelemetry:opentelemetry-api")
 	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")

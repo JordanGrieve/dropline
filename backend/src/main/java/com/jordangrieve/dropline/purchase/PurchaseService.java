@@ -4,6 +4,7 @@ import com.jordangrieve.dropline.drop.DropInfo;
 import com.jordangrieve.dropline.drop.DropRepository;
 import com.jordangrieve.dropline.purchase.strategy.PurchaseStrategy;
 import com.jordangrieve.dropline.realtime.StockPublisher;
+import com.jordangrieve.dropline.web.DropMetrics;
 import java.time.Clock;
 import java.time.Instant;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,17 +20,19 @@ public class PurchaseService {
     private final JdbcClient jdbc;
     private final TransactionTemplate tx;
     private final StockPublisher publisher;
+    private final DropMetrics metrics;
     private final Clock clock;
     private final long dropId;
 
     public PurchaseService(PurchaseStrategy strategy, DropRepository drops, JdbcClient jdbc,
-                           TransactionTemplate tx, StockPublisher publisher, Clock clock,
+                           TransactionTemplate tx, StockPublisher publisher, DropMetrics metrics, Clock clock,
                            @Value("${dropline.drop-id}") long dropId) {
         this.strategy = strategy;
         this.drops = drops;
         this.jdbc = jdbc;
         this.tx = tx;
         this.publisher = publisher;
+        this.metrics = metrics;
         this.clock = clock;
         this.dropId = dropId;
     }
@@ -42,12 +45,14 @@ public class PurchaseService {
     public PurchaseResult purchase(String buyerName) {
         Instant opensAt = drops.opensAt(dropId);
         if (clock.instant().isBefore(opensAt)) {
+            metrics.notOpen();
             throw new NotOpenException(opensAt);
         }
 
         PurchaseResult result = tx.execute(status -> {
             var remaining = strategy.reserve(dropId);
             if (remaining.isEmpty()) {
+                metrics.soldOut();
                 throw new SoldOutException();
             }
             jdbc.sql("""
@@ -62,6 +67,7 @@ public class PurchaseService {
             return new PurchaseResult(total - remaining.getAsInt(), remaining.getAsInt());
         });
 
+        metrics.sold();
         publisher.publish(result.remaining(), DropInfo.stateOf(opensAt, result.remaining(), clock.instant()));
         return result;
     }

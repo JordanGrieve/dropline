@@ -64,6 +64,12 @@ services:
       - "3000:3000"
     environment:
       ENABLE_LOGS_ALL: "false"
+    volumes:
+      # The Dropline dashboard, provisioned beside the image's own.
+      - ./grafana/dropline-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/dropline.yaml:ro
+      - ./grafana/dropline-dashboard.json:/otel-lgtm/grafana-dashboard-dropline.json:ro
+      # Grafana state, traces, metrics and logs survive a restart.
+      - lgtm:/data
 
   app1:
     <<: *app
@@ -103,3 +109,4 @@ services:
 
 volumes:
   pgdata:
+  lgtm:

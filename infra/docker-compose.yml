@@ -28,6 +28,11 @@ services:
       - "4318:4318"   # OTLP HTTP
     environment:
       ENABLE_LOGS_ALL: "false"
+    volumes:
+      - ./grafana/dropline-dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/dropline.yaml:ro
+      - ./grafana/dropline-dashboard.json:/otel-lgtm/grafana-dashboard-dropline.json:ro
+      - lgtm:/data
 
 volumes:
   pgdata:
+  lgtm:

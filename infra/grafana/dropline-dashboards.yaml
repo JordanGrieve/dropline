@@ -1,0 +1,11 @@
+# Grafana dashboard provisioning for otel-lgtm. Mounted into the image's own
+# provisioning folder next to its bundled JVM and RED dashboards.
+apiVersion: 1
+
+providers:
+  - name: "Dropline"
+    type: file
+    allowUiUpdates: false
+    options:
+      path: /otel-lgtm/grafana-dashboard-dropline.json
+      foldersFromFilesStructure: false
