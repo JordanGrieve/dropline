@@ -205,7 +205,7 @@ export function Wire({ running, result, latencyMs, pulse, remaining, total, ref 
         </div>
 
         <div className="wire-node">
-          <span className={`wire-icon stock${remaining === 0 ? ' empty' : ''}`} ref={stock}>
+          <span className={`wire-icon stock-row${remaining === 0 ? ' empty' : ''}`} ref={stock}>
             <b>{remaining}</b>
           </span>
           <span className="wire-label">Stock row</span>

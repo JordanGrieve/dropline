@@ -595,6 +595,154 @@ p {
   padding-top: 0;
 }
 
+/* The schema: three tables, relationships drawn as beams */
+
+.schema {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding-top: var(--s-8);
+  border-top: 1px solid var(--line);
+}
+.schema h2 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+.schema > .muted {
+  max-width: 56rem;
+}
+.schema > .muted strong {
+  font-weight: 500;
+  color: var(--ink);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+  font-size: 0.875em;
+}
+.schema-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-6);
+  margin-top: var(--s-2);
+}
+.schema-beams {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.schema-table {
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--control);
+  background: var(--card-lo);
+}
+.schema-table.hot {
+  border-color: var(--copper);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--copper) 35%, transparent);
+}
+.schema-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+}
+.schema-name {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+.schema-table.hot .schema-name {
+  color: var(--copper);
+}
+.schema-rows {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.schema-cols {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-2) 0;
+}
+.schema-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.125rem var(--s-3);
+  align-items: baseline;
+  padding: 0.375rem var(--s-4);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, 'Liberation Mono', monospace;
+  font-size: 0.8125rem;
+}
+.schema-col.keyed .schema-colname {
+  color: var(--ink);
+  font-weight: 600;
+}
+.schema-colname {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+.schema-key {
+  font-family: var(--sans);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 0.0625rem 0.3125rem;
+  border: 1px solid var(--control);
+  color: var(--muted);
+}
+.schema-type {
+  color: var(--muted);
+  text-align: right;
+}
+.schema-live {
+  grid-column: 2;
+  justify-self: end;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--copper);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.schema-note {
+  grid-column: 1 / -1;
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.schema-legend {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-3) var(--s-6);
+  margin: var(--s-2) 0 0;
+}
+.schema-legend div {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--s-3);
+  align-items: baseline;
+}
+.schema-legend dt {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--copper);
+  white-space: nowrap;
+}
+.schema-legend dd {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
 /* The wire: a request's path drawn as a line, with the stampede running along it */
 
 .wire {
@@ -695,7 +843,9 @@ p {
   height: 0.4375rem;
   border: 1px solid var(--ink);
 }
-.wire-icon.stock {
+/* "stock-row", not "stock": the home page's counter block owns ".stock",
+   and sharing the name gave this icon that block's top padding. */
+.wire-icon.stock-row {
   border-color: var(--copper);
   font-family: var(--serif);
   font-weight: 700;
@@ -703,7 +853,15 @@ p {
   color: var(--copper);
   transition: var(--t-color), border-color 200ms ease-out;
 }
-.wire-icon.stock.empty {
+.wire-icon.stock-row b {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.wire-icon.stock-row.empty {
   border-style: dashed;
   border-color: var(--disabled);
   color: var(--muted);
@@ -729,7 +887,7 @@ p {
 }
 
 /* Settled: the stock row takes the hit once the forward pass lands. */
-.wire[data-mode='settled'] .wire-icon.stock {
+.wire[data-mode='settled'] .wire-icon.stock-row {
   animation: wire-pulse 600ms ease-out 1.9s;
 }
 
@@ -782,12 +940,14 @@ p {
   padding-top: var(--s-5);
   border-top: 1px solid var(--line);
 }
+/* Stacked and full width on a phone; side by side from desktop up. */
 .demo-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--s-3);
 }
 .demo-actions button {
+  width: 100%;
   min-height: var(--target);
   padding: 0.625rem var(--s-5);
   font-family: var(--serif);
@@ -887,6 +1047,25 @@ p {
   }
   .title-row h1 {
     font-size: 1.625rem;
+  }
+  .demo-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .demo-actions button {
+    width: auto;
+  }
+  .schema-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(3rem, 6vw, 7rem);
+    align-items: start;
+  }
+  .schema-legend {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .schema-legend div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-1);
   }
 }
 
