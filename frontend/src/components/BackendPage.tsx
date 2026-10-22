@@ -3,6 +3,7 @@ import { SIMULATED_BUYERS } from '../types'
 import type { DropState } from '../useDrop'
 import { DemoPanel } from './DemoPanel'
 import { SchemaDiagram } from './SchemaDiagram'
+import { WhySection } from './WhySection'
 import { Wire } from './Wire'
 
 interface Props {
@@ -62,6 +63,8 @@ RETURNING remaining;`}</code>
       )}
 
       <SchemaDiagram remaining={d.remaining} total={total} />
+
+      <WhySection />
     </section>
   )
 }
