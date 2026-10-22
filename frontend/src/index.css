@@ -609,9 +609,13 @@ p {
   position: relative;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  /* The line and the dots run from the first node's centre to the last. */
+  align-items: center;
   --node: 2.25rem;
+}
+/* Keep the trunk nodes' icons level with the middle buyer: the label under
+   each icon would otherwise pull the icon up by half its height. */
+.wire-node:not(.wire-node-buyers) {
+  padding-top: calc(0.625rem + 0.375rem);
 }
 /* Magic UI beams, one per segment, drawn into the row by the component.
    Hidden under reduced motion, where the static line below stands in:
@@ -625,7 +629,7 @@ p {
   position: absolute;
   left: calc(var(--node) / 2);
   right: calc(var(--node) / 2);
-  top: calc(var(--node) / 2);
+  top: 50%;
   height: 1px;
   background: repeating-linear-gradient(90deg, var(--control) 0 0.25rem, transparent 0.25rem 0.625rem);
   opacity: 0.6;
@@ -659,14 +663,22 @@ p {
   border: 1px solid var(--control);
   background: var(--card-lo);
 }
-.wire-icon.buyers {
-  border-radius: 50%;
+/* The buyers: a column of people, each with a beam of its own into the edge. */
+.wire-buyers {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
 }
-.wire-icon.buyers i {
-  width: 0.375rem;
-  height: 0.375rem;
+.wire-icon.buyer {
+  width: 1.875rem;
+  height: 1.875rem;
   border-radius: 50%;
-  background: var(--ink);
+  color: var(--ink);
+}
+.wire-node-buyers {
+  justify-content: center;
 }
 .wire-icon.edge::before {
   content: '';

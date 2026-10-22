@@ -18,6 +18,9 @@ interface Props {
 
 type Mode = 'idle' | 'running' | 'settled' | 'single'
 
+/** How often, at rest, one random buyer is shown buying. */
+const IDLE_EVERY_MS = 5000
+
 /** The copper accent, as a plain colour: SVG gradient stops cannot read CSS variables. */
 const COPPER = { light: '#743812', dark: '#eab28d' }
 const MUTED = { light: '#7a756d', dark: '#8c877e' }
@@ -52,32 +55,65 @@ export function Wire({ running, result, latencyMs, pulse, remaining, total, ref 
   const muted = dark ? MUTED.dark : MUTED.light
 
   const rowRef = useRef<HTMLDivElement>(null)
-  const buyers = useRef<HTMLSpanElement>(null)
+  // Five buyers stand in for the crowd, each with a beam of its own
+  // converging on the edge. Refs are fixed in number, so hooks stay stable.
+  const buyer0 = useRef<HTMLSpanElement>(null)
+  const buyer1 = useRef<HTMLSpanElement>(null)
+  const buyer2 = useRef<HTMLSpanElement>(null)
+  const buyer3 = useRef<HTMLSpanElement>(null)
+  const buyer4 = useRef<HTMLSpanElement>(null)
+  const buyers = [buyer0, buyer1, buyer2, buyer3, buyer4]
   const edge = useRef<HTMLSpanElement>(null)
   const apps = useRef<HTMLSpanElement>(null)
   const stock = useRef<HTMLSpanElement>(null)
 
   const mode: Mode = running ? 'running' : result ? 'settled' : pulse > 0 ? 'single' : 'idle'
   const turnedAway = mode === 'settled' && result !== null && result.soldOut > 0
-  const key = `${mode}-${pulse}-${result ? result.sold : 0}`
 
-  // Idle: a slow, faint pass now and then, so the wire reads as live.
-  // Running: hard and continuous. Settled and single: one pass, in order.
+  // Idle: every few seconds one buyer, chosen at random, buys. Their beam
+  // carries a single pass into the edge and on down the trunk, so the wire
+  // reads as a live drop even when nobody on this page is pressing Buy.
+  const [idle, setIdle] = useState({ tick: 0, buyer: 0 })
+  useEffect(() => {
+    if (mode !== 'idle') return
+    const next = () => setIdle((s) => ({ tick: s.tick + 1, buyer: Math.floor(Math.random() * 5) }))
+    const first = window.setTimeout(next, 1500)
+    const every = window.setInterval(next, IDLE_EVERY_MS)
+    return () => {
+      window.clearTimeout(first)
+      window.clearInterval(every)
+    }
+  }, [mode])
+  // A real purchase by this viewer also travels from one random buyer.
+  const [singleBuyer, setSingleBuyer] = useState(0)
+  useEffect(() => {
+    if (mode === 'single') setSingleBuyer(Math.floor(Math.random() * 5))
+  }, [mode, pulse])
+
+  const key = `${mode}-${pulse}-${result ? result.sold : 0}-${idle.tick}`
+
+  // Running: every beam, hard and continuous. Everything else: one pass,
+  // the segments lighting one after another so the eye follows the request
+  // from the buyer to the stock row.
   const beam =
     mode === 'running'
       ? { duration: 2, repeat: Infinity, repeatDelay: 0.2, width: 2.5 }
-      : mode === 'idle'
-        ? { duration: 4, repeat: Infinity, repeatDelay: 3, width: 1.5 }
-        : { duration: 2, repeat: 0, repeatDelay: 0, width: 2.5 }
-  // Settled and single: the segments light up one after another, so the
-  // eye follows the request from the buyers to the stock row.
-  const stagger = mode === 'running' ? 0.35 : mode === 'idle' ? 0 : 0.6
+      : { duration: 2, repeat: 0, repeatDelay: 0, width: mode === 'idle' ? 2 : 2.5 }
+  const stagger = mode === 'running' ? 0.35 : 0.6
+  // Which buyers' beams carry the pass: all of them for a stampede or its
+  // result, one of them for a single purchase, nobody before the first tick.
+  const litBuyer = mode === 'idle' ? (idle.tick === 0 ? -1 : idle.buyer) : mode === 'single' ? singleBuyer : null
+  const trunkLit = mode === 'running' || mode === 'settled' || litBuyer !== null && litBuyer >= 0
 
+  // The trunk after the edge. The buyer beams come first, all at once.
   const segments: [RefObject<HTMLSpanElement | null>, RefObject<HTMLSpanElement | null>][] = [
-    [buyers, edge],
     [edge, apps],
     [apps, stock],
   ]
+  // Bend each buyer's beam toward the middle, as Magic UI's own example
+  // does: the control point sits below a high start and above a low one.
+  const mid = (buyers.length - 1) / 2
+  const curvatureFor = (i: number) => (i - mid) * 42
 
   return (
     <section ref={ref} className="wire" aria-label="How a purchase travels" data-mode={mode}>
@@ -86,6 +122,27 @@ export function Wire({ running, result, latencyMs, pulse, remaining, total, ref 
         <span className="wire-line" />
 
         <div className="wire-beams text-(--control)" key={key}>
+          {buyers.map((from, i) => {
+            const lit = litBuyer === null || litBuyer === i
+            return (
+              <AnimatedBeam
+                key={`buyer-${i}`}
+                containerRef={rowRef}
+                fromRef={asEl(from)}
+                toRef={asEl(edge)}
+                curvature={curvatureFor(i)}
+                pathColor="currentColor"
+                pathOpacity={0.5}
+                pathWidth={beam.width}
+                gradientStartColor={lit ? copper : 'transparent'}
+                gradientStopColor={lit ? copper : 'transparent'}
+                duration={beam.duration}
+                delay={mode === 'running' ? i * 0.12 : 0}
+                repeat={beam.repeat}
+                repeatDelay={beam.repeatDelay}
+              />
+            )
+          })}
           {segments.map(([from, to], i) => (
             <AnimatedBeam
               key={i}
@@ -95,10 +152,10 @@ export function Wire({ running, result, latencyMs, pulse, remaining, total, ref 
               pathColor="currentColor"
               pathOpacity={0.5}
               pathWidth={beam.width}
-              gradientStartColor={copper}
-              gradientStopColor={copper}
+              gradientStartColor={trunkLit ? copper : 'transparent'}
+              gradientStopColor={trunkLit ? copper : 'transparent'}
               duration={beam.duration}
-              delay={i * stagger}
+              delay={(i + 1) * stagger}
               repeat={beam.repeat}
               repeatDelay={beam.repeatDelay}
             />
@@ -114,17 +171,22 @@ export function Wire({ running, result, latencyMs, pulse, remaining, total, ref 
               gradientStartColor={muted}
               gradientStopColor={muted}
               duration={1.6}
-              delay={1.9}
+              delay={3 * stagger + 1.3}
               repeat={0}
             />
           )}
         </div>
 
-        <div className="wire-node">
-          <span className="wire-icon buyers" ref={buyers}>
-            <i />
-            <i />
-            <i />
+        <div className="wire-node wire-node-buyers">
+          <span className="wire-buyers">
+            {buyers.map((r, i) => (
+              <span className="wire-icon buyer" ref={r} key={i}>
+                <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="8" cy="5" r="3" />
+                  <path d="M2.5 14.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
+                </svg>
+              </span>
+            ))}
           </span>
           <span className="wire-label">Buyers</span>
         </div>
